@@ -13,8 +13,11 @@ export default class WilderResolver {
   }
 
   @Mutation(returns => Wilder)
-  async createWilder(@Arg('name') name: string) {
-    const newWilder = new WilderModel({ name });
+  async createWilder(
+    @Arg('name') name: string,
+    @Arg('city') city: string
+  ) {
+    const newWilder = new WilderModel({ name, city });
     await newWilder.save();
     return newWilder;
   }
