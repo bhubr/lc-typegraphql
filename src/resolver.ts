@@ -1,6 +1,10 @@
 /* eslint-disable class-methods-use-this */
 import { Query, Mutation, Arg, Resolver } from 'type-graphql';
+
+// TypeGraphQL types
 import Wilder from './types/Wilder';
+import WilderInput from './types/WilderInput';
+// Mongoose model
 import WilderModel from './models/Wilder';
 
 @Resolver(Wilder)
@@ -14,10 +18,9 @@ export default class WilderResolver {
 
   @Mutation(returns => Wilder)
   async createWilder(
-    @Arg('name') name: string,
-    @Arg('city') city: string
+    @Arg('wilderData') wilderData: WilderInput,
   ) {
-    const newWilder = new WilderModel({ name, city });
+    const newWilder = new WilderModel(wilderData);
     await newWilder.save();
     return newWilder;
   }
