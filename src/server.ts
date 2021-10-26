@@ -1,33 +1,38 @@
-import express from 'express';
+import 'reflect-metadata';
 import mongoose from 'mongoose';
-import cors from 'cors';
+import { ApolloServer } from 'apollo-server';
+import { buildSchema } from 'type-graphql';
+import WilderResolver from './resolver';
 
-import wilderController from './controllers/wilder';
+async function startup() {
+  try {
+    await mongoose
+    .connect('mongodb://127.0.0.1:27017/wilderdb', {
+      autoIndex: true,
+    })
+    console.log('Connected to database');
+    // .then(() => console.log('Connected to database')) // eslint-disable-line no-console
+    // .catch((err) => console.log(err)); // eslint-disable-line no-console
 
-const app = express();
+    const schema = await buildSchema({
+      resolvers: [WilderResolver]
+    });
 
-// Database
-mongoose
-  .connect('mongodb://127.0.0.1:27017/wilderdb', {
-    autoIndex: true,
-  })
-  .then(() => console.log('Connected to database')) // eslint-disable-line no-console
-  .catch((err) => console.log(err)); // eslint-disable-line no-console
+    const server = new ApolloServer({
+      schema,
+      // playground: true,
+    });
 
-// Middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use(cors());
+    const port = process.env.PORT || 4000;
+    const { url } = await server.listen(port);
+    console.log(`Server is running, GraphQL Playground available at ${url}`);
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error(`Could not start server because of error: ${err.message}`);
+    } else {
+      console.error(err);
+    }
+  }
+}
 
-// Routes
-app.get('/', (req, res) => {
-  res.send('Hello World');
-});
-
-app.post('/api/wilders', wilderController.create);
-app.get('/api/wilders', wilderController.read);
-app.put('/api/wilders', wilderController.update);
-app.delete('/api/wilders', wilderController.delete);
-
-// Start Server
-app.listen(5000, () => console.log('Server started on 5000')); // eslint-disable-line no-console
+startup();
